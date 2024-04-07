@@ -1,0 +1,10 @@
+{
+    "port": 8888,
+    "filesFolders": [
+        "/home/user/myFiles/",
+        "/home/user/instructions/"
+      ],
+      "extensions": [
+        ".txt", ".prvthng", ".sh", ".groovy", ".csv"
+      ]
+}
