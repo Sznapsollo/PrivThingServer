@@ -2,22 +2,28 @@
 Simple Web server to serve PrivThing and also allow it to work on files from specified folders on current system
 
 ## General
-This is node web server which servers webcontent from **client/build** folder and also handles API /actions
+This is node web server which serves webcontent from **client/build** folder and also handles API /actions
 
-Actions api expens object with **type** property. Currently the following types are handled
+**client/build** folder contains built **PrivThing** website - if you want to modify it - PrivThing can be found in separate repository here - https://github.com/Sznapsollo/PrivThing
+
+## How to setup
+- download repository
+- go to repository folder
+- run **npm install** to install all node dependencies
+- edit **config.json** to specify which folders and what kind of files you want to use in PrivThing
+- run manually by executing **node app.js**
+- this will start webserver at port specified in **config.js** file which by default is 888
+- so served content should be available under **http://localhost:8888**
+
+## API
+
+PrivThingServer handles simple api to retrieve list of files and also to update files - api is handled by **actions** route (**http://localhost:8888/actions**)
+
+Actions api expects post request with body object with **type** property (example: {type: "getListOfFiles"}). Currently the following types are handled
 - **getListOfFiles** - lists files from folders (folders and accepted file extensions are configured in **config.json**)
 - **retrieveFileFromPath** - retrieves file from specified path (has to be path allowed in config.json)
 - **updateFileFromPath** - updates file with content (file has to be of path allowed in config.json)
 
-**client/build** folder contains built **PrivThing** website - if you want to modify it - PrivThing can bo found in separate repository here - https://github.com/Sznapsollo/PrivThing
-
-## How to setup
-- copy to specific folder
-- edit **config.json** to specify which folders and what kind of files you wan to use in PrivThing
-- run manually
-```
-node /home/[youruser]/[yourfolder]/app.js
-```
 
 ## Can also create as service
 - Create service file - lets name it for example **prithThingService.service** with the following content (placement of node might be different in your case)
