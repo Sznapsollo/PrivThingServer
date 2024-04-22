@@ -15,6 +15,10 @@ This is node web server which serves webcontent from **client/build** folder and
 - this will start webserver at port specified in **config.js** file which by default is 888
 - so served content should be available under **http://localhost:8888**
 
+## enable using server in PrivThing to see shared files
+- open PrivThing **http://localhost:8888**
+- go to Settings and mark the following setting **Enable file server** & save
+
 ## API
 
 PrivThingServer handles simple api to retrieve list of files and also to update files - api is handled by **actions** route (**http://localhost:8888/actions**)
@@ -26,7 +30,7 @@ Actions api expects post request with body object with **type** property (exampl
 
 
 ## Can also create as service
-- Create service file - lets name it for example **prithThingService.service** with the following content (placement of node might be different in your case)
+- Create service file - lets name it for example **privThingService.service** with the following content (placement of node might be different in your case)
 ```
 [Unit]
 Description=ListingFilesServer for PrivThing
@@ -42,7 +46,7 @@ WantedBy=multi-user.target
 ```
 - copy service to service
 ```
-sudo cp prithThingService.service /etc/systemd/system/prithThingService.service
+sudo cp privThingService.service /etc/systemd/system/privThingService.service
 ```
 - Reload daemon
 ```
@@ -50,14 +54,14 @@ systemctl daemon-reload
 ```
 - Enable service
 ```
-sudo systemctl enable prithThingService.service
+sudo systemctl enable privThingService.service
 ```
 - Start service
 ```
-sudo systemctl start prithThingService.service
+sudo systemctl start privThingService.service
 ```
 - Other helpuf commands
 ```
-sudo systemctl stop prithThingService.service
-sudo systemctl status prithThingService.service
+sudo systemctl stop privThingService.service
+sudo systemctl status privThingService.service
 ```
