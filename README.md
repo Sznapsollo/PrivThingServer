@@ -15,9 +15,11 @@ This is node web server which serves webcontent from **client/build** folder and
 - this will start webserver at port specified in **config.js** file which by default is 888
 - so served content should be available under **http://localhost:8888**
 
-## enable using server in PrivThing to see shared files
+## Enable using server in PrivThing to see shared files
 - open PrivThing **http://localhost:8888**
-- go to Settings and mark the following setting **Enable file server** & save
+- go to Settings (menu icon top-right corner) and mark the following setting **Enable file server** & save
+- ![image](https://github.com/Sznapsollo/PrivThingServer/assets/20971560/baa243aa-db1d-4a37-99a3-b1526fc5567c)
+
 
 ## API
 
