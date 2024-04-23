@@ -10,6 +10,10 @@ const getListOfFiles = () => {
   let returnData = {files:[]};
 
   filesFolders.forEach( filesFolder => {
+    if (!fs.existsSync(filesFolder)){
+      console.warn('folder does not exist', filesFolder);
+      return
+    }
     fs.readdirSync(filesFolder).forEach(file => {
       const extension = path.extname(file);
       const fileStats = fs.statSync(filesFolder + file);
