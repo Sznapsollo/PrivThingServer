@@ -10,10 +10,15 @@ This is node web server which serves webcontent from **client/build** folder and
 - download repository
 - go to repository folder
 - run **npm install** to install all node dependencies
-- edit **config.json** to specify which folders and what kind of files you want to use in PrivThing
+- edit **config.json** (details in next section) to specify which folders and what kind of files you want to use in PrivThing
 - run manually by executing **node app.js**
 - this will start webserver at port specified in **config.js** file which by default is 888
 - so served content should be available under **http://localhost:8888**
+
+## config.json config properties
+- **filesFolders** - list of folders files from which will be listed in hosted privThing
+- **excludeFromAll** - (optional) - list of paths (each path has to be inlcuded in filesFolder) that will be excluded from **All** category in privThing that lists all files
+- **extensions** - only files with these extensions will be listed. "." is required
 
 ## Enable using server in PrivThing to see shared files
 - open PrivThing **http://localhost:8888**

@@ -1,10 +1,14 @@
 {
-    "port": 8888,
-    "filesFolders": [
-        "/home/user/myFiles/",
-        "/home/user/instructions/"
-      ],
-      "extensions": [
-        ".txt", ".prvthng", ".sh", ".groovy", ".csv"
-      ]
+  "port": 8888,
+  "filesFolders": [
+    "/home/user/myFiles/",
+    "/home/user/instructions/",
+    "/home/user/logFiles/"
+  ],
+  "excludeFromAll": [
+    "/home/user/logFiles/"
+  ],
+  "extensions": [
+    ".txt", ".prvthng", ".sh", ".groovy", ".csv"
+  ]
 }

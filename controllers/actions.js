@@ -4,6 +4,7 @@ const config = require('../config.json');
 const path = require("path");
 
 const filesFolders = config.filesFolders;
+const excludeFromAll = config.excludeFromAll;
 const extensions = config.extensions;
 
 const getListOfFiles = () => {
@@ -25,13 +26,19 @@ const getListOfFiles = () => {
       let modifiedTimestamp = 0;
       try {modifiedTimestamp = new Date(fileStats.mtime).getTime()} catch(e) {console.error('Could not parse mtime', e)};
 
-      returnData.files.push({
+      let fileItemData = {
         folder: filesFolder, 
         path: filesFolder + file, 
         name: file, 
         size: fileStats.size / 1000, 
         lastModified: modifiedTimestamp
-      })
+      }
+
+      if(excludeFromAll && excludeFromAll.indexOf(filesFolder) >= 0) {
+        fileItemData.excludeFromAll = true;
+      }
+
+      returnData.files.push(fileItemData);
     });
   })
   return returnData
