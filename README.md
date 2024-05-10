@@ -17,7 +17,6 @@ This is node web server which serves webcontent from **client/build** folder and
 
 ## config.json config properties
 - **filesFolders** - list of folders files from which will be listed in hosted privThing
-- **excludeFromAll** - (optional) - list of paths (each path has to be inlcuded in filesFolder) that will be excluded from **All** category in privThing that lists all files
 - **extensions** - only files with these extensions will be listed. "." is required
 
 ## Enable using server in PrivThing to see shared files

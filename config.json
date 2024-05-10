@@ -1,12 +1,10 @@
 {
   "port": 8888,
   "filesFolders": [
-    "/home/user/myFiles/",
-    "/home/user/instructions/",
-    "/home/user/logFiles/"
-  ],
-  "excludeFromAll": [
-    "/home/user/logFiles/"
+    "/home/nj/Development/tutoriale/React/react_typescript_comments/testFiles/",
+    "/home/nj/Ebi24/CodeBase/skrypty/deployment/",
+    "/home/nj/Ebi24/CodeBase/skrypty/",
+    "/home/nj/Documents/work_log/"
   ],
   "extensions": [
     ".txt", ".prvthng", ".sh", ".groovy", ".csv"

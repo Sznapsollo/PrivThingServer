@@ -4,10 +4,27 @@ const config = require('../config.json');
 const path = require("path");
 
 const filesFolders = config.filesFolders;
-const excludeFromAll = config.excludeFromAll;
 const extensions = config.extensions;
 
-const getListOfFiles = () => {
+function searchFile(fileName, filePath, searchPhrase) {
+  try {
+      const regex = new RegExp(`${searchPhrase}`, 'g');
+
+      if(regex.test(fileName)) {
+        return true
+      }
+      // Read the content of the file and check for a matching pattern
+      const content = fs.readFileSync(filePath);
+      if (regex.test(content)) {
+          return true
+      }
+  } catch (error) {
+      console.error(`Error reading ${filePath}: ${error}`);
+  }
+  return false
+}
+
+const getListOfFiles = (searchPhrase) => {
   let returnData = {files:[]};
 
   filesFolders.forEach( filesFolder => {
@@ -34,8 +51,8 @@ const getListOfFiles = () => {
         lastModified: modifiedTimestamp
       }
 
-      if(excludeFromAll && excludeFromAll.indexOf(filesFolder) >= 0) {
-        fileItemData.excludeFromAll = true;
+      if(searchPhrase && searchPhrase.length >= 3 && !searchFile(fileItemData.name, fileItemData.path, searchPhrase)) {
+        return
       }
 
       returnData.files.push(fileItemData);
@@ -111,7 +128,7 @@ const handleAction = async (req, res = response) => {
     
     switch(req.body.type) {
       case 'getListOfFiles':
-        responseData.data = getListOfFiles();
+        responseData.data = getListOfFiles(req.body.searchPhrase);
         break
       case 'retrieveFileFromPath':
         responseData.data = retrieveFileFromPath(req.body.data);
