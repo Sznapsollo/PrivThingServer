@@ -105,9 +105,10 @@ const handleAction = async (req, res = response) => {
   
   console.log('handleAction', req?.body?.type)
   // console.log(req.body)
+  let responseData = {status: 0, data: {}}
   
   try {
-    let responseData = {status: 0, data: {}}
+    
     switch(req.body.type) {
       case 'getListOfFiles':
         responseData.data = getListOfFiles();
