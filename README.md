@@ -1,4 +1,5 @@
 # PrivThingServer
+![image](https://github.com/Sznapsollo/PrivThingServer/assets/20971560/a897eca8-12ed-439a-a866-d07f92ea86df)
 Simple Web server to serve PrivThing and also allow it to work on files from specified folders on current system
 
 ## General
