@@ -2,9 +2,9 @@
     "port": 8888,
     "filesFolders": [
         "/home/youruser/notes/",
-        "/home/youruser/Documents/work_log/"
+        { "path": "/home/youruser/Documents/work_log/", "label": "Work log" }
     ],
     "extensions": [
-        ".txt", ".prvthng", ".sh", ".groovy", ".csv", ".md"
+        ".txt", ".prvthng", ".sh", ".groovy", ".csv"
     ]
 }

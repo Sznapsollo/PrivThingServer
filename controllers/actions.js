@@ -4,11 +4,17 @@ const fsp = require('fs/promises');
 const config = require('../config.json');
 const path = require("path");
 
-const filesFolders = config.filesFolders;
+const filesFolders = (config.filesFolders || []).map((filesFolder) => {
+  if(typeof filesFolder === 'string') {
+    return { path: filesFolder, label: null }
+  }
+  return { path: filesFolder?.path, label: filesFolder?.label || null }
+}).filter((filesFolder) => !!filesFolder.path);
+
 const extensions = (config.extensions || []).map((extension) => extension.toLowerCase());
 
-const allowedRoots = (filesFolders || []).reduce((roots, filesFolder) => {
-  const resolved = path.resolve(filesFolder);
+const allowedRoots = filesFolders.reduce((roots, filesFolder) => {
+  const resolved = path.resolve(filesFolder.path);
   roots.push(resolved);
   try {
     const real = fs.realpathSync(resolved);
@@ -128,9 +134,9 @@ const getListOfFiles = async (searchPhrase) => {
   for (const filesFolder of filesFolders) {
     let files;
     try {
-      files = await fsp.readdir(filesFolder);
+      files = await fsp.readdir(filesFolder.path);
     } catch (error) {
-      console.warn('folder does not exist', filesFolder);
+      console.warn('folder does not exist', filesFolder.path);
       continue
     }
 
@@ -140,7 +146,7 @@ const getListOfFiles = async (searchPhrase) => {
         return null
       }
 
-      const filePath = filesFolder + file;
+      const filePath = filesFolder.path + file;
       let fileStats;
       try {
         fileStats = await fsp.stat(filePath);
@@ -156,7 +162,8 @@ const getListOfFiles = async (searchPhrase) => {
       try {modifiedTimestamp = new Date(fileStats.mtime).getTime()} catch(e) {console.error('Could not parse mtime', e)};
 
       const fileItemData = {
-        folder: filesFolder,
+        folder: filesFolder.path,
+        folderLabel: filesFolder.label,
         path: filePath,
         name: file,
         size: fileStats.size / 1000,

@@ -193,4 +193,11 @@ test('saving twice in a row does not raise a false conflict', async () => {
     fs.unlinkSync(target);
 });
 
+test('lists a plain string folder with no label, exactly as before', async () => {
+    const listed = (await call({ type: 'getListOfFiles' })).data.files;
+    assert.ok(listed.length > 0);
+    assert.strictEqual(listed[0].folder, allowed + path.sep);
+    assert.strictEqual(listed[0].folderLabel, null);
+});
+
 test.after(() => fs.rmSync(sandbox, { recursive: true, force: true }));

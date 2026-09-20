@@ -19,7 +19,10 @@ This is node web server which serves webcontent from **client/build** folder and
 - so served content should be available under **http://localhost:8888**
 
 ## config.json config properties
-- **filesFolders** - list of folders files from which will be listed in hosted privThing
+- **filesFolders** - list of folders files from which will be listed in hosted privThing. An
+  entry is either a plain path string, or `{"path": "...", "label": "..."}` - the label is what
+  PrivThing shows in its folder list instead of the full path. Without a label the path is
+  shown, exactly as before
 - **extensions** - only files with these extensions will be listed. "." is required
 
 ## Enable using server in PrivThing to see shared files
