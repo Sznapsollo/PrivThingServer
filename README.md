@@ -36,6 +36,7 @@ Actions api expects post request with body object with **type** property (exampl
 - **getListOfFiles** - lists files from folders (folders and accepted file extensions are configured in **config.json**)
 - **retrieveFileFromPath** - retrieves file from specified path (has to be path allowed in config.json)
 - **updateFileFromPath** - updates file with content (file has to be of path allowed in config.json)
+- **createFileInFolder** - creates a new file in one of the configured **filesFolders**. The folder must be one of them exactly (not a subfolder), the name must be a plain file name with an allowed extension, and an existing file is never overwritten
 
 ## Security
 
@@ -45,8 +46,10 @@ The trust boundary is your own machine, and it is narrow. Read this before runni
 - Every path sent to **retrieveFileFromPath** / **updateFileFromPath** must resolve inside one
   of the **filesFolders** and must carry one of the configured **extensions**. Symlinks that
   point outside a configured folder are refused. `..` does not escape.
-- **updateFileFromPath overwrites files on your disk.** Only list folders in **filesFolders**
-  that you are happy for a web page on localhost to read and write.
+- **updateFileFromPath overwrites files on your disk and createFileInFolder adds new ones.**
+  Only list folders in **filesFolders** that you are happy for a web page on localhost to
+  read and write.
+- There is no delete action. Files can be read, changed and created, never removed.
 - There is no CORS header and no authentication. Any other program running as your user on the
   same machine can call the API; the browser blocks other websites from reading the responses.
 - Anything you put in a configured folder is readable through the server while it runs. Do not

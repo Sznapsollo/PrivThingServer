@@ -33,6 +33,39 @@ const assertAllowed = (target) => {
   }
 };
 
+const resolveAllowedFolder = (folderPath) => {
+  if(!filesFolders || !filesFolders.length) {
+    throw new Error('Folder paths defined');
+  }
+
+  if(!folderPath || !folderPath.length) {
+    throw new Error('No folder selected');
+  }
+
+  const target = path.resolve(folderPath);
+  if(!allowedRoots.some((root) => root === target)) {
+    throw new Error('Access to folder denied.');
+  }
+
+  return target
+};
+
+const resolveNewFileName = (fileName) => {
+  if(!fileName || !fileName.length) {
+    throw new Error('No file name given');
+  }
+
+  if(fileName !== path.basename(fileName) || fileName === '.' || fileName === '..') {
+    throw new Error('Access to file denied.');
+  }
+
+  if(extensions.indexOf(path.extname(fileName).toLowerCase()) < 0) {
+    throw new Error('Access to file denied.');
+  }
+
+  return fileName
+};
+
 const resolveAllowedFile = (filePath) => {
   if (!filesFolders || !filesFolders.length) {
     throw new Error('Folder paths defined');
@@ -152,6 +185,19 @@ const updateFileFromPath = async (data, filePath) => {
   return null
 }
 
+const createFileInFolder = async (data, folderPath, fileName) => {
+  const folder = resolveAllowedFolder(folderPath);
+  const target = path.join(folder, resolveNewFileName(fileName));
+
+  if(fs.existsSync(target)) {
+    throw new Error('File already exists.');
+  }
+
+  await fsp.writeFile(target, data == null ? '' : data);
+
+  return { path: target }
+}
+
 const handleAction = async (req, res = response) => {
   
   console.log('handleAction', req?.body?.type)
@@ -169,6 +215,9 @@ const handleAction = async (req, res = response) => {
         break
       case 'updateFileFromPath':
         responseData.data = await updateFileFromPath(req.body.data, req.body.path);
+        break
+      case 'createFileInFolder':
+        responseData.data = await createFileInFolder(req.body.data, req.body.folder, req.body.name);
         break
       default:
         responseData.status = -1;

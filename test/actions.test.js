@@ -102,4 +102,39 @@ test('search finds content case-insensitively and lists only allowed extensions'
     assert.strictEqual(response.data.files[0].name, 'note.txt');
 });
 
+const create = (folder, name, data) => call({ type: 'createFileInFolder', folder: folder, name: name, data: data });
+
+test('creates a new file in a configured folder', async () => {
+    const response = await create(allowed, 'fresh.txt', 'brand new');
+    assert.strictEqual(response.status, 0);
+    assert.strictEqual(fs.readFileSync(path.join(allowed, 'fresh.txt'), 'utf8'), 'brand new');
+    fs.unlinkSync(path.join(allowed, 'fresh.txt'));
+});
+
+test('refuses to create in a folder that is not configured', async () => {
+    assert.strictEqual((await create(outside, 'fresh.txt', 'x')).status, -1);
+    assert.strictEqual(fs.existsSync(path.join(outside, 'fresh.txt')), false);
+});
+
+test('refuses to create in a subfolder, even of a configured one', async () => {
+    assert.strictEqual((await create(path.join(allowed, 'sub'), 'fresh.txt', 'x')).status, -1);
+});
+
+test('refuses a file name that tries to walk out', async () => {
+    assert.strictEqual((await create(allowed, '../escape.txt', 'x')).status, -1);
+    assert.strictEqual((await create(allowed, 'sub/escape.txt', 'x')).status, -1);
+    assert.strictEqual(fs.existsSync(path.join(sandbox, 'escape.txt')), false);
+});
+
+test('refuses to create a file with an extension that is not allowed', async () => {
+    assert.strictEqual((await create(allowed, 'keys2.pem', 'x')).status, -1);
+    assert.strictEqual(fs.existsSync(path.join(allowed, 'keys2.pem')), false);
+});
+
+test('refuses to overwrite an existing file through create', async () => {
+    const response = await create(allowed, 'note.txt', 'clobbered');
+    assert.strictEqual(response.status, -1);
+    assert.strictEqual(fs.readFileSync(path.join(allowed, 'note.txt'), 'utf8'), 'hello from a configured folder');
+});
+
 test.after(() => fs.rmSync(sandbox, { recursive: true, force: true }));
