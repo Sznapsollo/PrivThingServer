@@ -1,5 +1,6 @@
 const { response } = require("express");
 const fs = require('fs');
+const fsp = require('fs/promises');
 const config = require('../config.json');
 const path = require("path");
 
@@ -56,15 +57,21 @@ const resolveAllowedFile = (filePath) => {
   return realTarget;
 };
 
-function searchFile(fileName, filePath, searchPhrase) {
+const MAX_SEARCH_FILE_SIZE = 5 * 1024 * 1024;
+
+async function searchFile(fileName, filePath, fileSize, searchPhrase) {
   try {
       const needle = String(searchPhrase).toLowerCase();
 
       if(fileName.toLowerCase().includes(needle)) {
         return true
       }
-      // Read the content of the file and check for a matching pattern
-      const content = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+
+      if(fileSize > MAX_SEARCH_FILE_SIZE) {
+        return false
+      }
+
+      const content = await fsp.readFile(filePath, { encoding: 'utf8' });
       if (content.toLowerCase().includes(needle)) {
           return true
       }
@@ -74,63 +81,76 @@ function searchFile(fileName, filePath, searchPhrase) {
   return false
 }
 
-const getListOfFiles = (searchPhrase) => {
+const getListOfFiles = async (searchPhrase) => {
   let returnData = {files:[]};
 
-  filesFolders.forEach( filesFolder => {
-    if (!fs.existsSync(filesFolder)){
+  for (const filesFolder of filesFolders) {
+    let files;
+    try {
+      files = await fsp.readdir(filesFolder);
+    } catch (error) {
       console.warn('folder does not exist', filesFolder);
-      return
+      continue
     }
-    fs.readdirSync(filesFolder).forEach(file => {
+
+    const fileItems = await Promise.all(files.map(async (file) => {
       const extension = path.extname(file);
-      const fileStats = fs.statSync(filesFolder + file);
-      let filePropertExtension = extension && extensions.indexOf (extension.toLowerCase()) >= 0;
-      if(!filePropertExtension) {
-        return
+      if(!extension || extensions.indexOf(extension.toLowerCase()) < 0) {
+        return null
+      }
+
+      const filePath = filesFolder + file;
+      let fileStats;
+      try {
+        fileStats = await fsp.stat(filePath);
+      } catch (error) {
+        return null
+      }
+
+      if(!fileStats.isFile()) {
+        return null
       }
 
       let modifiedTimestamp = 0;
       try {modifiedTimestamp = new Date(fileStats.mtime).getTime()} catch(e) {console.error('Could not parse mtime', e)};
 
-      let fileItemData = {
-        folder: filesFolder, 
-        path: filesFolder + file, 
-        name: file, 
-        size: fileStats.size / 1000, 
+      const fileItemData = {
+        folder: filesFolder,
+        path: filePath,
+        name: file,
+        size: fileStats.size / 1000,
         lastModified: modifiedTimestamp
       }
 
-      if(searchPhrase && searchPhrase.length >= 3 && !searchFile(fileItemData.name, fileItemData.path, searchPhrase)) {
-        return
+      if(searchPhrase && searchPhrase.length >= 3) {
+        const matches = await searchFile(fileItemData.name, fileItemData.path, fileStats.size, searchPhrase);
+        if(!matches) {
+          return null
+        }
       }
 
-      returnData.files.push(fileItemData);
-    });
-  })
+      return fileItemData
+    }));
+
+    returnData.files.push(...fileItems.filter((fileItem) => !!fileItem));
+  }
+
   return returnData
 }
 
-const retrieveFileFromPath = (filePath) => {
-  let returnData = null;
-
+const retrieveFileFromPath = async (filePath) => {
   const target = resolveAllowedFile(filePath);
 
-  returnData = fs.readFileSync(target, { encoding: 'utf8', flag: 'r' });
-
-  return returnData
+  return await fsp.readFile(target, { encoding: 'utf8' })
 }
 
-const updateFileFromPath = (data, filePath) => {
-  let returnData = null;
-
+const updateFileFromPath = async (data, filePath) => {
   const target = resolveAllowedFile(filePath);
 
-  fs.writeFileSync(target, data);
+  await fsp.writeFile(target, data);
 
-  return returnData
+  return null
 }
-
 
 const handleAction = async (req, res = response) => {
   
@@ -142,13 +162,13 @@ const handleAction = async (req, res = response) => {
     
     switch(req.body.type) {
       case 'getListOfFiles':
-        responseData.data = getListOfFiles(req.body.searchPhrase);
+        responseData.data = await getListOfFiles(req.body.searchPhrase);
         break
       case 'retrieveFileFromPath':
-        responseData.data = retrieveFileFromPath(req.body.data);
+        responseData.data = await retrieveFileFromPath(req.body.data);
         break
       case 'updateFileFromPath':
-        responseData.data = updateFileFromPath(req.body.data, req.body.path);
+        responseData.data = await updateFileFromPath(req.body.data, req.body.path);
         break
       default:
         responseData.status = -1;
