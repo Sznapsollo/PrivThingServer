@@ -43,6 +43,7 @@ test('reads a normal file inside a configured folder', async () => {
     const response = await read(path.join(allowed, 'note.txt'));
     assert.strictEqual(response.status, 0);
     assert.strictEqual(response.data, 'hello from a configured folder');
+    assert.strictEqual(response.lastModified, fs.statSync(path.join(allowed, 'note.txt')).mtime.getTime());
 });
 
 test('writes a normal file inside a configured folder', async () => {
@@ -135,6 +136,61 @@ test('refuses to overwrite an existing file through create', async () => {
     const response = await create(allowed, 'note.txt', 'clobbered');
     assert.strictEqual(response.status, -1);
     assert.strictEqual(fs.readFileSync(path.join(allowed, 'note.txt'), 'utf8'), 'hello from a configured folder');
+});
+
+test('a write with the timestamp it read goes through, and returns the new one', async () => {
+    const target = path.join(allowed, 'conflict.txt');
+    fs.writeFileSync(target, 'first');
+
+    const opened = await read(target);
+    const saved = await call({ type: 'updateFileFromPath', data: 'second', path: target, lastModified: opened.lastModified });
+
+    assert.strictEqual(saved.status, 0);
+    assert.strictEqual(fs.readFileSync(target, 'utf8'), 'second');
+    assert.strictEqual(saved.lastModified, fs.statSync(target).mtime.getTime());
+    fs.unlinkSync(target);
+});
+
+test('a write with a stale timestamp is refused and the file is left alone', async () => {
+    const target = path.join(allowed, 'conflict.txt');
+    fs.writeFileSync(target, 'what the editor opened');
+
+    const opened = await read(target);
+    fs.writeFileSync(target, 'what somebody else wrote');
+    fs.utimesSync(target, new Date(), new Date(opened.lastModified + 5000));
+
+    const saved = await call({ type: 'updateFileFromPath', data: 'from the editor', path: target, lastModified: opened.lastModified });
+
+    assert.strictEqual(saved.status, -1);
+    assert.strictEqual(saved.code, 'CONFLICT');
+    assert.strictEqual(saved.lastModified, fs.statSync(target).mtime.getTime());
+    assert.strictEqual(fs.readFileSync(target, 'utf8'), 'what somebody else wrote');
+    fs.unlinkSync(target);
+});
+
+test('overwriting on purpose, with no timestamp sent, still works', async () => {
+    const target = path.join(allowed, 'conflict.txt');
+    fs.writeFileSync(target, 'somebody else');
+
+    const saved = await call({ type: 'updateFileFromPath', data: 'forced', path: target });
+
+    assert.strictEqual(saved.status, 0);
+    assert.strictEqual(fs.readFileSync(target, 'utf8'), 'forced');
+    fs.unlinkSync(target);
+});
+
+test('saving twice in a row does not raise a false conflict', async () => {
+    const target = path.join(allowed, 'conflict.txt');
+    fs.writeFileSync(target, 'first');
+
+    let stamp = (await read(target)).lastModified;
+    let saved = await call({ type: 'updateFileFromPath', data: 'second', path: target, lastModified: stamp });
+    assert.strictEqual(saved.status, 0);
+
+    saved = await call({ type: 'updateFileFromPath', data: 'third', path: target, lastModified: saved.lastModified });
+    assert.strictEqual(saved.status, 0);
+    assert.strictEqual(fs.readFileSync(target, 'utf8'), 'third');
+    fs.unlinkSync(target);
 });
 
 test.after(() => fs.rmSync(sandbox, { recursive: true, force: true }));

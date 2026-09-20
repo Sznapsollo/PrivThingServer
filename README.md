@@ -34,8 +34,8 @@ PrivThingServer handles simple api to retrieve list of files and also to update 
 
 Actions api expects post request with body object with **type** property (example: {type: "getListOfFiles"}). Currently the following types are handled
 - **getListOfFiles** - lists files from folders (folders and accepted file extensions are configured in **config.json**)
-- **retrieveFileFromPath** - retrieves file from specified path (has to be path allowed in config.json)
-- **updateFileFromPath** - updates file with content (file has to be of path allowed in config.json)
+- **retrieveFileFromPath** - retrieves file from specified path (has to be path allowed in config.json). The response also carries **lastModified**, the file's modification time
+- **updateFileFromPath** - updates file with content (file has to be of path allowed in config.json). Send back the **lastModified** you were given and the write is refused with **code: "CONFLICT"** if the file changed on disk meanwhile; omit it to overwrite unconditionally. The response carries the new **lastModified**
 - **createFileInFolder** - creates a new file in one of the configured **filesFolders**. The folder must be one of them exactly (not a subfolder), the name must be a plain file name with an allowed extension, and an existing file is never overwritten
 
 ## Security

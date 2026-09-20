@@ -66,6 +66,14 @@ const resolveNewFileName = (fileName) => {
   return fileName
 };
 
+const lastModifiedOf = (target) => {
+  try {
+    return new Date(fs.statSync(target).mtime).getTime()
+  } catch (e) {
+    return 0
+  }
+};
+
 const resolveAllowedFile = (filePath) => {
   if (!filesFolders || !filesFolders.length) {
     throw new Error('Folder paths defined');
@@ -173,16 +181,27 @@ const getListOfFiles = async (searchPhrase) => {
 
 const retrieveFileFromPath = async (filePath) => {
   const target = resolveAllowedFile(filePath);
+  const content = await fsp.readFile(target, { encoding: 'utf8' });
 
-  return await fsp.readFile(target, { encoding: 'utf8' })
+  return { data: content, lastModified: lastModifiedOf(target) }
 }
 
-const updateFileFromPath = async (data, filePath) => {
+const updateFileFromPath = async (data, filePath, expectedLastModified) => {
   const target = resolveAllowedFile(filePath);
+
+  if(expectedLastModified) {
+    const current = lastModifiedOf(target);
+    if(current && current !== expectedLastModified) {
+      const conflict = new Error('File changed on disk.');
+      conflict.code = 'CONFLICT';
+      conflict.lastModified = current;
+      throw conflict
+    }
+  }
 
   await fsp.writeFile(target, data);
 
-  return null
+  return { lastModified: lastModifiedOf(target) }
 }
 
 const createFileInFolder = async (data, folderPath, fileName) => {
@@ -210,12 +229,17 @@ const handleAction = async (req, res = response) => {
       case 'getListOfFiles':
         responseData.data = await getListOfFiles(req.body.searchPhrase);
         break
-      case 'retrieveFileFromPath':
-        responseData.data = await retrieveFileFromPath(req.body.data);
+      case 'retrieveFileFromPath': {
+        const file = await retrieveFileFromPath(req.body.data);
+        responseData.data = file.data;
+        responseData.lastModified = file.lastModified;
         break
-      case 'updateFileFromPath':
-        responseData.data = await updateFileFromPath(req.body.data, req.body.path);
+      }
+      case 'updateFileFromPath': {
+        const updated = await updateFileFromPath(req.body.data, req.body.path, req.body.lastModified);
+        responseData.lastModified = updated.lastModified;
         break
+      }
       case 'createFileInFolder':
         responseData.data = await createFileInFolder(req.body.data, req.body.folder, req.body.name);
         break
@@ -230,6 +254,12 @@ const handleAction = async (req, res = response) => {
     console.error(err);
     responseData.status = -1;
     responseData.data = err?.message ? err.message : "Operation failed";
+    if(err?.code) {
+      responseData.code = err.code;
+    }
+    if(err?.lastModified) {
+      responseData.lastModified = err.lastModified;
+    }
     res.json(responseData);
   }
 };
