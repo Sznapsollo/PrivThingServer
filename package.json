@@ -1,6 +1,6 @@
 {
   "name": "PrivThingServer",
-  "version": "1.0.39",
+  "version": "1.0.40",
   "description": "Simple Web server to serve PrivThing and also allow it to work on files from specified folders on current system",
   "main": "app.js",
   "scripts": {

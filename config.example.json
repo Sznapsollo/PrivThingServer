@@ -5,6 +5,6 @@
         "/home/youruser/Documents/work_log/"
     ],
     "extensions": [
-        ".txt", ".prvthng", ".sh", ".groovy", ".csv"
+        ".txt", ".prvthng", ".sh", ".groovy", ".csv", ".md"
     ]
 }
