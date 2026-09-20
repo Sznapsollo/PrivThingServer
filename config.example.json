@@ -1,0 +1,10 @@
+{
+    "port": 8888,
+    "filesFolders": [
+        "/home/youruser/notes/",
+        "/home/youruser/Documents/work_log/"
+    ],
+    "extensions": [
+        ".txt", ".prvthng", ".sh", ".groovy", ".csv"
+    ]
+}

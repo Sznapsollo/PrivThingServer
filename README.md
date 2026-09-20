@@ -12,6 +12,7 @@ This is node web server which serves webcontent from **client/build** folder and
 - download repository
 - go to repository folder
 - run **npm install** to install all node dependencies
+- copy **config.example.json** to **config.json** - the real config is not kept in the repository, so that nobody publishes their own folder paths
 - edit **config.json** (details in next section) to specify which folders and what kind of files you want to use in PrivThing
 - run manually by executing **node app.js**
 - this will start webserver at port specified in **config.js** file which by default is 888
@@ -35,6 +36,21 @@ Actions api expects post request with body object with **type** property (exampl
 - **getListOfFiles** - lists files from folders (folders and accepted file extensions are configured in **config.json**)
 - **retrieveFileFromPath** - retrieves file from specified path (has to be path allowed in config.json)
 - **updateFileFromPath** - updates file with content (file has to be of path allowed in config.json)
+
+## Security
+
+The trust boundary is your own machine, and it is narrow. Read this before running the server.
+
+- The server binds to **localhost only**, so other machines on your network cannot reach it.
+- Every path sent to **retrieveFileFromPath** / **updateFileFromPath** must resolve inside one
+  of the **filesFolders** and must carry one of the configured **extensions**. Symlinks that
+  point outside a configured folder are refused. `..` does not escape.
+- **updateFileFromPath overwrites files on your disk.** Only list folders in **filesFolders**
+  that you are happy for a web page on localhost to read and write.
+- There is no CORS header and no authentication. Any other program running as your user on the
+  same machine can call the API; the browser blocks other websites from reading the responses.
+- Anything you put in a configured folder is readable through the server while it runs. Do not
+  point it at a folder holding keys, credentials or `.env` files.
 
 
 ## Can also create as service
