@@ -4,18 +4,68 @@ const config = require('../config.json');
 const path = require("path");
 
 const filesFolders = config.filesFolders;
-const extensions = config.extensions;
+const extensions = (config.extensions || []).map((extension) => extension.toLowerCase());
+
+const allowedRoots = (filesFolders || []).reduce((roots, filesFolder) => {
+  const resolved = path.resolve(filesFolder);
+  roots.push(resolved);
+  try {
+    const real = fs.realpathSync(resolved);
+    if (real !== resolved) {
+      roots.push(real);
+    }
+  } catch (e) {
+    // folder may not exist yet
+  }
+  return roots;
+}, []);
+
+const isInsideAllowedRoot = (target) =>
+  allowedRoots.some((root) => target === root || target.startsWith(root + path.sep));
+
+const assertAllowed = (target) => {
+  if (!isInsideAllowedRoot(target)) {
+    throw new Error('Access to file denied.');
+  }
+  if (extensions.indexOf(path.extname(target).toLowerCase()) < 0) {
+    throw new Error('Access to file denied.');
+  }
+};
+
+const resolveAllowedFile = (filePath) => {
+  if (!filesFolders || !filesFolders.length) {
+    throw new Error('Folder paths defined');
+  }
+
+  if (!filePath || !filePath.length) {
+    throw new Error('No file selected');
+  }
+
+  const target = path.resolve(filePath);
+  assertAllowed(target);
+
+  if (!fs.existsSync(target) || !fs.statSync(target).isFile()) {
+    throw new Error('File does not exist or is incorrect.');
+  }
+
+  const realTarget = fs.realpathSync(target);
+  if (realTarget !== target) {
+    assertAllowed(realTarget);
+  }
+
+  return realTarget;
+};
 
 function searchFile(fileName, filePath, searchPhrase) {
   try {
-      const regex = new RegExp(`${searchPhrase}`, 'g');
+      const needle = String(searchPhrase).toLowerCase();
 
-      if(regex.test(fileName)) {
+      if(fileName.toLowerCase().includes(needle)) {
         return true
       }
       // Read the content of the file and check for a matching pattern
-      const content = fs.readFileSync(filePath);
-      if (regex.test(content)) {
+      const content = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
+      if (content.toLowerCase().includes(needle)) {
           return true
       }
   } catch (error) {
@@ -64,27 +114,9 @@ const getListOfFiles = (searchPhrase) => {
 const retrieveFileFromPath = (filePath) => {
   let returnData = null;
 
-  if(!filesFolders || !filesFolders.length) {
-    throw new Error('Folder paths defined');
-  }
+  const target = resolveAllowedFile(filePath);
 
-  if(!filePath || !filePath.length) {
-    throw new Error('No file selected');
-  }
-
-  let foundConfiguredFolder = filesFolders.find( (filesFolder) =>
-    filePath.includes(filesFolder)
-  )
-
-  if(!foundConfiguredFolder) {
-    throw new Error('Access to file denied.');
-  }
-
-  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-    returnData = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
-  } else {
-    throw new Error('File does not exist or is incorrect.');
-  }
+  returnData = fs.readFileSync(target, { encoding: 'utf8', flag: 'r' });
 
   return returnData
 }
@@ -92,27 +124,9 @@ const retrieveFileFromPath = (filePath) => {
 const updateFileFromPath = (data, filePath) => {
   let returnData = null;
 
-  if(!filesFolders || !filesFolders.length) {
-    throw new Error('Folder paths defined');
-  }
+  const target = resolveAllowedFile(filePath);
 
-  if(!filePath || !filePath.length) {
-    throw new Error('No file selected');
-  }
-
-  let foundConfiguredFolder = filesFolders.find( (filesFolder) => {
-    return filePath.includes(filesFolder)
-  })
-
-  if(!foundConfiguredFolder) {
-    throw new Error('Access to file denied.');
-  }
-
-  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-    fs.writeFileSync(filePath, data);
-  } else {
-    throw new Error('File does not exist or is incorrect.');
-  }
+  fs.writeFileSync(target, data);
 
   return returnData
 }
