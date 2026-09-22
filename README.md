@@ -51,8 +51,16 @@ read [Security](#security) before pointing it at any folder.
   plain path, or `{"path": "...", "label": "..."}` - the label is what PrivThing shows instead
   of the full path. Without a label the path is shown
 - **extensions** - only files with these extensions are listed. The leading `.` is required
+- **canonicalHost** - only for a public install behind a reverse proxy. Set it to the one
+  hostname the site should answer on, for example `"privthing.com"`, and every other spelling
+  of the address (`www.`, plain `http`) is answered with a **301** to
+  `https://<canonicalHost>/...`. Leave it out, or empty, for a normal local install - then
+  nothing is redirected and the server answers on whatever address you reach it at
 
 Changing `config.json` needs a restart.
+
+Whatever this is set to, `/index.html` always redirects to `/`, so the front page has a single
+address.
 
 ### Turning it on in PrivThing
 

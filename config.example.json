@@ -6,5 +6,6 @@
     ],
     "extensions": [
         ".txt", ".prvthng", ".sh", ".groovy", ".csv"
-    ]
+    ],
+    "canonicalHost": ""
 }
