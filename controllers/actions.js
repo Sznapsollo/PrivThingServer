@@ -146,7 +146,7 @@ const getListOfFiles = async (searchPhrase) => {
         return null
       }
 
-      const filePath = filesFolder.path + file;
+      const filePath = path.join(filesFolder.path, file);
       let fileStats;
       try {
         fileStats = await fsp.stat(filePath);
